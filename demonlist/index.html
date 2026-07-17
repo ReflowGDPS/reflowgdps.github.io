@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Breadylist - hai</title>
+  <title>Reflow GDPS Demonlist</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="levels.js"></script>
   <style>
@@ -53,7 +53,7 @@
   <header class="bg-[#050506] px-6 py-4 flex items-center justify-between border-b border-[#121215] fixed top-0 left-0 right-0 z-40 theme-transition-all">
     <div class="flex items-center space-x-3 cursor-pointer" onclick="UI.clearAllSelections()">
       <span class="text-2xl font-black tracking-wide select-none clean-text-gradient">
-        <span id="brand-logo-first" class="transition-all duration-300">Breadylist</span>
+        <span id="brand-logo-first" class="transition-all duration-300">Reflow GDPS Demonlist</span>
       </span>
     </div>
     
@@ -74,8 +74,8 @@
           <option value="theme3">Cyberpunk</option>
           <option value="theme4">Sapphire</option>
           <option value="theme5">Lavender</option>
-          <option value="theme6">Crimson</option>
-          <option value="theme7" selected>Neon</option>
+          <option value="theme7">Neon</option>
+          <option value="theme6" selected>Crimson</option>
           <option value="theme8">Forest</option>
           <option value="theme9">Gold</option>
           <option value="theme10">Mono</option>
@@ -135,7 +135,7 @@
       <div id="panel-leaderboard-controls" class="hidden bg-[#0a0a0c] p-5 rounded-2xl border border-[#121215] theme-transition-all flex flex-col gap-4">
         <div>
           <h2 class="text-xl font-bold tracking-wide text-white">Leaderboard</h2>
-          <p class="text-xs text-gray-500 mt-1">Players — Bready Points</p>
+          <p class="text-xs text-gray-500 mt-1">Players — Points</p>
         </div>
         <div class="flex gap-2">
           <select class="bg-[#050506] border border-[#16161a] text-xs rounded-xl px-4 py-2.5 outline-none text-gray-400 cursor-pointer flex-1 theme-transition-all">
@@ -215,7 +215,7 @@
 
     let state = {
       activeTab: "levels",
-      activeTheme: "theme7",
+      activeTheme: "theme6",
       selectedLevelId: null,
       selectedPlayerName: null,
       searchQuery: "",

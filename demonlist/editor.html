@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Breadylist — List Editor</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * {
+      font-family: "Comic Sans MS", "Comic Sans", cursive, sans-serif !important;
+      box-sizing: border-box;
+    }
+    body {
+      background-color: #050506;
+    }
+  </style>
+</head>
+<body class="text-gray-300 min-h-screen flex flex-col p-8">
+
+  <div class="max-w-[1200px] w-full mx-auto flex flex-col gap-6">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-[#121215] pb-6 gap-4">
+      <div>
+        <h1 class="text-3xl font-black text-white tracking-wide">Breadylist Database Editor</h1>
+        <p class="text-xs text-gray-500 mt-1">Upload levels.js, reorganize placements, edit levels, then save.</p>
+      </div>
+      
+      <div class="flex flex-wrap gap-2">
+        <label class="bg-[#0a0a0c] border border-[#16161a] hover:border-gray-500 text-xs font-bold text-white px-4 py-3 rounded-xl cursor-pointer transition-all">
+          Upload levels.js
+          <input type="file" id="upload-file-input" class="hidden" accept=".js" onchange="Editor.importJS(event)">
+        </label>
+        <button onclick="Editor.exportJS()" class="bg-white hover:bg-gray-200 text-[#050506] text-xs font-bold px-5 py-3 rounded-xl transition-all">
+          Save/Export levels.js
+        </button>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      
+      <div class="lg:col-span-5 bg-[#0a0a0c] border border-[#121215] rounded-2xl p-5 flex flex-col gap-4">
+        <div>
+          <h2 class="text-lg font-bold text-white">List Placement Order</h2>
+          <p class="text-xs text-gray-500">Click a level to edit. Reorder using up & down arrows.</p>
+        </div>
+
+        <div id="editor-levels-list" class="flex flex-col gap-2 max-h-[600px] overflow-y-auto pr-1">
+          <div class="text-center py-12 text-gray-600 text-xs border border-dashed border-[#16161a] rounded-xl">
+            Upload levels.js or add a level to start.
+          </div>
+        </div>
+      </div>
+
+      <div class="lg:col-span-7 flex flex-col gap-6">
+        
+        <div class="bg-[#0a0a0c] border border-[#121215] rounded-2xl p-6 flex flex-col gap-4">
+          <div>
+            <h2 id="form-title" class="text-lg font-bold text-white">Create Level</h2>
+            <p id="form-subtitle" class="text-xs text-gray-500">Create a brand new level to add to database.</p>
+          </div>
+
+          <input type="hidden" id="form-internal-index" value="">
+
+          <div class="grid grid-cols-2 gap-4">
+            <div class="flex flex-col gap-1">
+              <label class="text-[10px] uppercase font-bold text-gray-500">Level Name</label>
+              <input type="text" id="form-name" class="bg-[#050506] border border-[#16161a] text-xs rounded-xl p-3 outline-none text-white focus:border-gray-500">
+            </div>
+            <div class="flex flex-col gap-1">
+              <label class="text-[10px] uppercase font-bold text-gray-500">Demon Type (Difficulty)</label>
+              <select id="form-difficulty" class="bg-[#050506] border border-[#16161a] text-xs rounded-xl p-3 outline-none text-white focus:border-gray-500">
+                <option value="Easy Demon">Easy Demon</option>
+                <option value="Medium Demon">Medium Demon</option>
+                <option value="Hard Demon">Hard Demon</option>
+                <option value="Insane Demon">Insane Demon</option>
+                <option value="Extreme Demon" selected>Extreme Demon</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div class="flex flex-col gap-1">
+              <label class="text-[10px] uppercase font-bold text-gray-500">Creator</label>
+              <input type="text" id="form-creator" class="bg-[#050506] border border-[#16161a] text-xs rounded-xl p-3 outline-none text-white focus:border-gray-500">
+            </div>
+            <div class="flex flex-col gap-1">
+              <label class="text-[10px] uppercase font-bold text-gray-500">Verifier</label>
+              <input type="text" id="form-verifier" class="bg-[#050506] border border-[#16161a] text-xs rounded-xl p-3 outline-none text-white focus:border-gray-500">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div class="flex flex-col gap-1">
+              <label class="text-[10px] uppercase font-bold text-gray-500">GD Level ID</label>
+              <input type="text" id="form-levelId" class="bg-[#050506] border border-[#16161a] text-xs rounded-xl p-3 outline-none text-white focus:border-gray-500">
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div class="flex flex-col gap-1">
+                <label class="text-[10px] uppercase font-bold text-gray-500">Victor Points</label>
+                <input type="number" step="0.01" id="form-points-victor" class="bg-[#050506] border border-[#16161a] text-xs rounded-xl p-3 outline-none text-white focus:border-gray-500">
+              </div>
+              <div class="flex flex-col gap-1">
+                <label class="text-[10px] uppercase font-bold text-gray-500">Verifier Points</label>
+                <input type="number" step="0.01" id="form-points-verifier" class="bg-[#050506] border border-[#16161a] text-xs rounded-xl p-3 outline-none text-white focus:border-gray-500">
+              </div>
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label class="text-[10px] uppercase font-bold text-gray-500">Victors List (JSON string format)</label>
+            <textarea id="form-victors" rows="3" placeholder='[{"name": "Player", "percent": "100%"}]' class="bg-[#050506] border border-[#16161a] text-xs rounded-xl p-3 outline-none text-white focus:border-gray-500 font-mono"></textarea>
+          </div>
+
+          <div class="flex gap-2 pt-2">
+            <button onclick="Editor.saveForm()" class="flex-1 bg-white hover:bg-gray-200 text-[#050506] text-xs font-bold py-3 rounded-xl transition-all">
+              Save Entry
+            </button>
+            <button onclick="Editor.clearForm()" class="bg-[#050506] hover:bg-[#0c0c0e] border border-[#16161a] text-gray-400 hover:text-white text-xs px-5 py-3 rounded-xl transition-all">
+              Clear / Reset
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let localDB = [];
+    const GR_BADGES = [
+      "from-[#38bdf8] to-[#0284c7]",
+      "from-[#f43f5e] to-[#be123c]",
+      "from-[#10b981] to-[#047857]",
+      "from-[#a855f7] to-[#7e22ce]",
+      "from-[#f59e0b] to-[#b45309]"
+    ];
+
+    const Editor = {
+      importJS(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          try {
+            const rawText = event.target.result;
+            const jsonStartIdx = rawText.indexOf('[');
+            const jsonEndIdx = rawText.lastIndexOf(']');
+            if (jsonStartIdx === -1 || jsonEndIdx === -1) {
+              alert("Unable to find the level data array inside the JS file.");
+              return;
+            }
+            const jsonString = rawText.substring(jsonStartIdx, jsonEndIdx + 1);
+            localDB = JSON.parse(jsonString);
+            this.rebuildIDs();
+            this.renderLevels();
+          } catch (err) {
+            alert("Error parsing levels.js! Check file structure.");
+          }
+        };
+        reader.readAsText(file);
+      },
+
+      rebuildIDs() {
+        localDB.forEach((l, i) => {
+          l.id = i + 1;
+          if (!l.badgeBg) {
+            l.badgeBg = GR_BADGES[i % GR_BADGES.length];
+          }
+          if (!l.difficulty) {
+            l.difficulty = "Extreme Demon"; // backward compatibility default
+          }
+        });
+      },
+
+      renderLevels() {
+        const container = document.getElementById('editor-levels-list');
+        if (localDB.length === 0) {
+          container.innerHTML = `
+            <div class="text-center py-12 text-gray-600 text-xs border border-dashed border-[#16161a] rounded-xl">
+              Upload levels.js or add new entries to begin
+            </div>`;
+          return;
+        }
+
+        container.innerHTML = localDB.map((l, index) => {
+          return `
+            <div class="bg-[#050506] p-3 rounded-xl border border-[#121215] flex items-center justify-between gap-3">
+              <div onclick="Editor.editLevel(${index})" class="flex-1 cursor-pointer">
+                <p class="text-xs font-bold text-white">#${l.id} - ${l.name}</p>
+                <p class="text-[10px] text-gray-500">${l.difficulty || 'Extreme Demon'} • by ${l.creator}</p>
+              </div>
+              <div class="flex items-center gap-1.5 shrink-0">
+                <button onclick="Editor.move(${index}, -1)" class="bg-[#0c0c0e] border border-[#16161a] hover:border-gray-500 text-xs font-bold text-gray-400 hover:text-white w-7 h-7 rounded-lg transition-all">▲</button>
+                <button onclick="Editor.move(${index}, 1)" class="bg-[#0c0c0e] border border-[#16161a] hover:border-gray-500 text-xs font-bold text-gray-400 hover:text-white w-7 h-7 rounded-lg transition-all">▼</button>
+                <button onclick="Editor.deleteLevel(${index})" class="bg-[#0c0c0e] hover:bg-red-950/20 border border-[#16161a] hover:border-red-500 text-xs font-bold text-red-500 w-7 h-7 rounded-lg transition-all">✕</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      },
+
+      move(index, direction) {
+        const targetIndex = index + direction;
+        if (targetIndex < 0 || targetIndex >= localDB.length) return;
+        const temp = localDB[index];
+        localDB[index] = localDB[targetIndex];
+        localDB[targetIndex] = temp;
+        this.rebuildIDs();
+        this.renderLevels();
+      },
+
+      editLevel(index) {
+        const l = localDB[index];
+        document.getElementById('form-internal-index').value = index;
+        document.getElementById('form-name').value = l.name;
+        document.getElementById('form-difficulty').value = l.difficulty || "Extreme Demon";
+        document.getElementById('form-creator').value = l.creator;
+        document.getElementById('form-verifier').value = l.verifier;
+        document.getElementById('form-levelId').value = l.levelId;
+        document.getElementById('form-points-victor').value = parseFloat(l.points?.victor) || 0;
+        document.getElementById('form-points-verifier').value = parseFloat(l.points?.verifier) || 0;
+        document.getElementById('form-victors').value = l.victors ? JSON.stringify(l.victors) : "[]";
+
+        document.getElementById('form-title').textContent = `Edit Level #${l.id}`;
+        document.getElementById('form-subtitle').textContent = `Editing profile details for level: ${l.name}`;
+      },
+
+      deleteLevel(index) {
+        if (!confirm("Remove this entry?")) return;
+        localDB.splice(index, 1);
+        this.rebuildIDs();
+        this.renderLevels();
+        this.clearForm();
+      },
+
+      clearForm() {
+        document.getElementById('form-internal-index').value = "";
+        document.getElementById('form-name').value = "";
+        document.getElementById('form-difficulty').value = "Extreme Demon";
+        document.getElementById('form-creator').value = "";
+        document.getElementById('form-verifier').value = "";
+        document.getElementById('form-levelId').value = "";
+        document.getElementById('form-points-victor').value = "";
+        document.getElementById('form-points-verifier').value = "";
+        document.getElementById('form-victors').value = "";
+
+        document.getElementById('form-title').textContent = "Create Level";
+        document.getElementById('form-subtitle').textContent = "Create a brand new level to add to database.";
+      },
+
+      saveForm() {
+        const indexStr = document.getElementById('form-internal-index').value;
+        const name = document.getElementById('form-name').value.trim();
+        const difficulty = document.getElementById('form-difficulty').value;
+        const creator = document.getElementById('form-creator').value.trim();
+        const verifier = document.getElementById('form-verifier').value.trim();
+        const levelId = document.getElementById('form-levelId').value.trim();
+        const victorPoints = parseFloat(document.getElementById('form-points-victor').value) || 0;
+        const verifierPoints = parseFloat(document.getElementById('form-points-verifier').value) || 0;
+        const victorsRaw = document.getElementById('form-victors').value.trim();
+
+        if (!name || !creator || !verifier || !levelId) {
+          alert("All text fields are required!");
+          return;
+        }
+
+        let victors = [];
+        if (victorsRaw) {
+          try {
+            victors = JSON.parse(victorsRaw);
+          } catch (e) {
+            alert("Victors JSON formatting must be a valid raw array configuration!");
+            return;
+          }
+        }
+
+        const dataPayload = {
+          name,
+          difficulty,
+          creator,
+          verifier,
+          levelId,
+          points: {
+            victor: victorPoints.toFixed(2),
+            verifier: verifierPoints.toFixed(2)
+          },
+          victors,
+          badgeBg: GR_BADGES[Math.floor(Math.random() * GR_BADGES.length)]
+        };
+
+        if (indexStr !== "") {
+          const index = parseInt(indexStr);
+          dataPayload.id = localDB[index].id;
+          dataPayload.badgeBg = localDB[index].badgeBg;
+          localDB[index] = dataPayload;
+        } else {
+          localDB.push(dataPayload);
+        }
+
+        this.rebuildIDs();
+        this.renderLevels();
+        this.clearForm();
+      },
+
+      exportJS() {
+        if (localDB.length === 0) {
+          alert("Nothing to export!");
+          return;
+        }
+        
+        const outString = `window.DB_LEVELS = ${JSON.stringify(localDB, null, 2)};`;
+        const dataStr = "data:text/javascript;charset=utf-8," + encodeURIComponent(outString);
+        
+        const downloadAnchor = document.createElement('a');
+        downloadAnchor.setAttribute("href", dataStr);
+        downloadAnchor.setAttribute("download", "levels.js");
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        downloadAnchor.remove();
+      }
+    };
+  </script>
+</body>
+</html>

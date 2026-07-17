@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Breadylist - hai</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="levels.js"></script>
+  <style>
+    * {
+      font-family: "Comic Sans MS", "Comic Sans", cursive, sans-serif !important;
+      box-sizing: border-box;
+    }
+    
+    body {
+      background-color: #050506;
+      overflow-x: hidden;
+    }
+    
+    .custom-scroll::-webkit-scrollbar {
+      display: none;
+    }
+    .custom-scroll {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    .theme-transition-all {
+      transition: background 0.25s cubic-bezier(0.4, 0, 0.2, 1), 
+                  border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1), 
+                  color 0.25s cubic-bezier(0.4, 0, 0.2, 1), 
+                  box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .clean-text-gradient {
+      background: var(--theme-gradient);
+      -webkit-background-clip: text !important;
+      -webkit-text-fill-color: transparent !important;
+      background-clip: text !important;
+      display: inline-block;
+    }
+
+    :root {
+      --theme-glow-color: rgba(236, 72, 153, 0.4);
+      --theme-gradient: linear-gradient(90deg, #22c55e 0%, #ec4899 100%);
+    }
+  </style>
+</head>
+<body class="text-gray-300 min-h-screen flex flex-col selection:bg-white/20 theme-transition-all">
+
+  <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <header class="bg-[#050506] px-6 py-4 flex items-center justify-between border-b border-[#121215] fixed top-0 left-0 right-0 z-40 theme-transition-all">
+    <div class="flex items-center space-x-3 cursor-pointer" onclick="UI.clearAllSelections()">
+      <span class="text-2xl font-black tracking-wide select-none clean-text-gradient">
+        <span id="brand-logo-first" class="transition-all duration-300">Breadylist</span>
+      </span>
+    </div>
+    
+    <div class="flex items-center space-x-4">
+      <div class="bg-[#0c0c0e] p-1 rounded-full flex space-x-1 border border-[#16161a] theme-transition-all">
+        <button id="tab-btn-levels" onclick="UI.switchMainTab('levels')" class="px-5 py-2 rounded-full text-xs font-bold transition-all duration-200 text-white shadow-sm">
+          Levels
+        </button>
+        <button id="tab-btn-leaderboard" onclick="UI.switchMainTab('leaderboard')" class="px-5 py-2 rounded-full text-xs font-bold text-gray-400 hover:text-white transition-all duration-200">
+          Leaderboard
+        </button>
+      </div>
+
+      <div class="relative">
+        <select id="global-theme-selector" onchange="ThemeEngine.applyTheme(this.value)" class="bg-[#0c0c0e] text-xs text-gray-400 border border-[#16161a] rounded-xl px-4 py-2.5 outline-none cursor-pointer hover:text-white hover:border-gray-700 transition-all theme-transition-all">
+          <option value="theme1">Emerald</option>
+          <option value="theme2">Sunset</option>
+          <option value="theme3">Cyberpunk</option>
+          <option value="theme4">Sapphire</option>
+          <option value="theme5">Lavender</option>
+          <option value="theme6">Crimson</option>
+          <option value="theme7" selected>Neon</option>
+          <option value="theme8">Forest</option>
+          <option value="theme9">Gold</option>
+          <option value="theme10">Mono</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 flex flex-col lg:flex-row pt-24 px-6 pb-6 gap-6 w-full max-w-[1550px] mx-auto">
+    
+    <section class="w-full lg:w-[410px] flex flex-col gap-4 shrink-0">
+      
+      <div id="panel-levels-controls" class="bg-[#0a0a0c] p-5 rounded-2xl border border-[#121215] theme-transition-all flex flex-col gap-4">
+        <div>
+          <h2 class="text-xl font-bold tracking-wide text-white">Levels</h2>
+          <p class="text-xs text-gray-500 mt-1 leading-relaxed">
+            Click a level to view details; click a player to view player details
+          </p>
+          
+          <div class="flex flex-col gap-2 mt-3">
+            <input type="text" id="filter-search-input" oninput="DataEngine.handleSearch(this.value)" placeholder="Search levels or creators..." class="bg-[#050506] border border-[#16161a] text-xs rounded-xl px-4 py-3 outline-none text-gray-200 placeholder-gray-600 focus:border-gray-500 transition-all theme-transition-all">
+            
+            <div class="grid grid-cols-2 gap-2">
+              <select id="filter-creator-dropdown" onchange="DataEngine.handleCreatorFilter(this.value)" class="bg-[#050506] border border-[#16161a] text-xs rounded-xl px-3 py-3 outline-none text-gray-400 cursor-pointer hover:text-white theme-transition-all">
+                <option value="ALL">All creators</option>
+              </select>
+              
+              <select id="filter-difficulty-dropdown" onchange="DataEngine.handleDifficultyFilter(this.value)" class="bg-[#050506] border border-[#16161a] text-xs rounded-xl px-3 py-3 outline-none text-gray-400 cursor-pointer hover:text-white theme-transition-all">
+                <option value="ALL">All Difficulties</option>
+                <option value="Easy Demon">Easy Demon</option>
+                <option value="Medium Demon">Medium Demon</option>
+                <option value="Hard Demon">Hard Demon</option>
+                <option value="Insane Demon">Insane Demon</option>
+                <option value="Extreme Demon">Extreme Demon</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="flex gap-2 mt-2">
+            <select id="filter-sort-dropdown" onchange="DataEngine.handleSortOrder(this.value)" class="bg-[#050506] border border-[#16161a] text-xs rounded-xl px-4 py-2.5 outline-none text-gray-400 cursor-pointer flex-1 hover:text-white theme-transition-all">
+              <option value="placement-asc">Sort by placement</option>
+              <option value="placement-desc">Sort by placement (Desc)</option>
+              <option value="alphabetic">Sort alphabetically</option>
+              <option value="points-desc">Sort by maximum points</option>
+            </select>
+            
+            <button onclick="DataEngine.clearFilters()" class="bg-[#050506] border border-[#16161a] text-xs rounded-xl px-4 py-2.5 hover:bg-[#0c0c0e] text-gray-400 hover:text-white font-medium transition-all theme-transition-all">
+              Clear
+            </button>
+            <button onclick="DataEngine.shuffleEntries()" class="bg-[#050506] border border-[#16161a] text-xs rounded-xl px-4 py-2.5 hover:bg-[#0c0c0e] text-gray-400 hover:text-white font-medium transition-all theme-transition-all">
+              Shuffle
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div id="panel-leaderboard-controls" class="hidden bg-[#0a0a0c] p-5 rounded-2xl border border-[#121215] theme-transition-all flex flex-col gap-4">
+        <div>
+          <h2 class="text-xl font-bold tracking-wide text-white">Leaderboard</h2>
+          <p class="text-xs text-gray-500 mt-1">Players — Bready Points</p>
+        </div>
+        <div class="flex gap-2">
+          <select class="bg-[#050506] border border-[#16161a] text-xs rounded-xl px-4 py-2.5 outline-none text-gray-400 cursor-pointer flex-1 theme-transition-all">
+            <option>By points</option>
+          </select>
+          <button onclick="DataEngine.refreshLeaderboard()" class="bg-[#050506] border border-[#16161a] text-xs rounded-xl px-5 py-2.5 hover:bg-[#0c0c0e] text-gray-400 hover:text-white font-bold transition-all theme-transition-all">
+            Refresh
+          </button>
+        </div>
+      </div>
+
+      <div class="flex-1 flex flex-col min-h-[350px]">
+        <div id="viewport-levels-list" class="flex-1 overflow-y-auto max-h-[580px] custom-scroll pr-1 flex flex-col gap-2.5">
+        </div>
+
+        <div id="viewport-leaderboard-list" class="hidden flex-1 overflow-y-auto max-h-[580px] custom-scroll pr-1 flex flex-col gap-2.5">
+        </div>
+      </div>
+
+    </section>
+
+    <section id="inspector-display-panel" class="flex-1 bg-[#0a0a0c] border border-[#121215] rounded-2xl p-8 min-h-[500px] flex flex-col relative theme-transition-all shadow-xl">
+      <button onclick="UI.clearAllSelections()" class="absolute top-6 right-6 text-gray-600 hover:text-white transition-colors text-xl font-bold select-none p-2 hover:bg-[#121215] rounded-xl">✕</button>
+      
+      <div id="inspector-content-root" class="h-full flex flex-col justify-start">
+        <div id="inspector-fallback-state" class="text-center lg:text-left flex flex-col justify-start items-center lg:items-start pt-4">
+          <h3 id="inspector-fallback-headline" class="text-xl font-bold mb-2 theme-transition-all text-white">
+            Select a level to see details!
+          </h3>
+          <p class="text-xs text-gray-400 max-w-sm mb-6 leading-relaxed">
+            Click a level on the left or a player on the leaderboard
+          </p>
+          <div class="text-xs text-gray-600">
+            No item selected
+          </div>
+        </div>
+
+        <div id="inspector-populated-state" class="hidden flex flex-col h-full justify-between gap-8">
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    let DB_LEVELS = [];
+    let DB_LEADERBOARD = [];
+
+    const THEME_REGISTRY = {
+      theme1: { primary: "#10b981", secondary: "#047857", background: "#040d0a", gradient: "linear-gradient(90deg, #047857 0%, #10b981 100%)", glow: "rgba(16, 185, 129, 0.35)" },
+      theme2: { primary: "#f97316", secondary: "#e11d48", background: "#0e0504", gradient: "linear-gradient(90deg, #e11d48 0%, #f97316 100%)", glow: "rgba(249, 115, 22, 0.35)" },
+      theme3: { primary: "#06b6d4", secondary: "#a855f7", background: "#05040d", gradient: "linear-gradient(90deg, #a855f7 0%, #06b6d4 100%)", glow: "rgba(6, 182, 212, 0.35)" },
+      theme4: { primary: "#3b82f6", secondary: "#1d4ed8", background: "#04060e", gradient: "linear-gradient(90deg, #1d4ed8 0%, #3b82f6 100%)", glow: "rgba(59, 130, 246, 0.35)" },
+      theme5: { primary: "#a855f7", secondary: "#ec4899", background: "#0a040d", gradient: "linear-gradient(90deg, #ec4899 0%, #a855f7 100%)", glow: "rgba(168, 85, 247, 0.35)" },
+      theme6: { primary: "#ef4444", secondary: "#991b1b", background: "#0d0404", gradient: "linear-gradient(90deg, #991b1b 0%, #ef4444 100%)", glow: "rgba(239, 68, 68, 0.35)" },
+      theme7: { primary: "#ec4899", secondary: "#22c55e", background: "#050506", gradient: "linear-gradient(90deg, #22c55e 0%, #ec4899 100%)", glow: "rgba(236, 72, 153, 0.4)" },
+      theme8: { primary: "#22c55e", secondary: "#15803d", background: "#040d05", gradient: "linear-gradient(90deg, #15803d 0%, #22c55e 100%)", glow: "rgba(34, 197, 94, 0.35)" },
+      theme9: { primary: "#eab308", secondary: "#ca8a04", background: "#0d0c04", gradient: "linear-gradient(90deg, #ca8a04 0%, #eab308 100%)", glow: "rgba(234, 179, 8, 0.35)" },
+      theme10: { primary: "#f3f4f6", secondary: "#4b5563", background: "#080808", gradient: "linear-gradient(90deg, #4b5563 0%, #f3f4f6 100%)", glow: "rgba(243, 244, 246, 0.2)" }
+    };
+
+    const GR_BADGES = [
+      "from-[#38bdf8] to-[#0284c7]",
+      "from-[#f43f5e] to-[#be123c]",
+      "from-[#10b981] to-[#047857]",
+      "from-[#a855f7] to-[#7e22ce]",
+      "from-[#f59e0b] to-[#b45309]"
+    ];
+
+    const DIFFICULTY_COLORS = {
+      "Easy Demon": "bg-green-500/10 text-green-400 border-green-500/20",
+      "Medium Demon": "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
+      "Hard Demon": "bg-orange-500/10 text-orange-400 border-orange-500/20",
+      "Insane Demon": "bg-purple-500/10 text-purple-400 border-purple-500/20",
+      "Extreme Demon": "bg-red-500/10 text-red-400 border-red-500/20"
+    };
+
+    let state = {
+      activeTab: "levels",
+      activeTheme: "theme7",
+      selectedLevelId: null,
+      selectedPlayerName: null,
+      searchQuery: "",
+      creatorFilter: "ALL",
+      difficultyFilter: "ALL",
+      sortBy: "placement-asc",
+      mutatedLevels: []
+    };
+
+    const DataEngine = {
+      loadData() {
+        if (window.DB_LEVELS && Array.isArray(window.DB_LEVELS)) {
+          DB_LEVELS = window.DB_LEVELS;
+          this.buildLeaderboardFromLevels();
+          this.populateCreatorsDropdown();
+          this.applyMutations();
+        } else {
+          console.error("Database variable DB_LEVELS was not loaded.");
+          UI.showToast("Database not found", "danger");
+        }
+      },
+
+      buildLeaderboardFromLevels() {
+        const playerPoints = {};
+        const playerVerified = {};
+        const playerCompleted = {};
+
+        DB_LEVELS.forEach(level => {
+          if (level.verifier) {
+            const vPoints = parseFloat(level.points?.verifier) || 0;
+            playerPoints[level.verifier] = (playerPoints[level.verifier] || 0) + vPoints;
+            if (!playerVerified[level.verifier]) playerVerified[level.verifier] = [];
+            playerVerified[level.verifier].push(level.name);
+          }
+
+          if (level.victors && Array.isArray(level.victors)) {
+            level.victors.forEach(victor => {
+              if (victor.percent === "100%") {
+                const vicPoints = parseFloat(level.points?.victor) || 0;
+                playerPoints[victor.name] = (playerPoints[victor.name] || 0) + vicPoints;
+                if (!playerCompleted[victor.name]) playerCompleted[victor.name] = [];
+                playerCompleted[victor.name].push(level.name);
+              }
+            });
+          }
+        });
+
+        const leaderboardArray = Object.keys(playerPoints).map(name => ({
+          name: name,
+          points: playerPoints[name].toFixed(2),
+          verified: playerVerified[name] || [],
+          completed: playerCompleted[name] || []
+        }));
+
+        leaderboardArray.sort((a, b) => parseFloat(b.points) - parseFloat(a.points));
+        DB_LEADERBOARD = leaderboardArray;
+      },
+
+      populateCreatorsDropdown() {
+        const dropdown = document.getElementById('filter-creator-dropdown');
+        if (!dropdown) return;
+        dropdown.innerHTML = '<option value="ALL">All creators</option>';
+        const creators = [...new Set(DB_LEVELS.map(l => l.creator))];
+        creators.forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c;
+          opt.textContent = c;
+          dropdown.appendChild(opt);
+        });
+      },
+
+      handleSearch(val) {
+        state.searchQuery = val.toLowerCase().trim();
+        this.applyMutations();
+      },
+
+      handleCreatorFilter(val) {
+        state.creatorFilter = val;
+        this.applyMutations();
+      },
+
+      handleDifficultyFilter(val) {
+        state.difficultyFilter = val;
+        this.applyMutations();
+      },
+
+      handleSortOrder(val) {
+        state.sortBy = val;
+        this.applyMutations();
+      },
+
+      clearFilters() {
+        state.searchQuery = "";
+        state.creatorFilter = "ALL";
+        state.difficultyFilter = "ALL";
+        state.sortBy = "placement-asc";
+        
+        document.getElementById('filter-search-input').value = "";
+        document.getElementById('filter-creator-dropdown').value = "ALL";
+        document.getElementById('filter-difficulty-dropdown').value = "ALL";
+        document.getElementById('filter-sort-dropdown').value = "placement-asc";
+        
+        this.applyMutations();
+        UI.showToast("Filters initialized", "info");
+      },
+
+      shuffleEntries() {
+        for (let i = state.mutatedLevels.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [state.mutatedLevels[i], state.mutatedLevels[j]] = [state.mutatedLevels[j], state.mutatedLevels[i]];
+        }
+        UI.renderLevelsView();
+        UI.showToast("List shuffled", "success");
+      },
+
+      refreshLeaderboard() {
+        UI.showToast("Refreshing leaderboard standings...", "info");
+        setTimeout(() => {
+          this.buildLeaderboardFromLevels();
+          UI.renderLeaderboardView();
+          UI.showToast("Leaderboard updated", "success");
+        }, 400);
+      },
+
+      applyMutations() {
+        let result = [...DB_LEVELS];
+
+        if (state.searchQuery) {
+          result = result.filter(l => 
+            l.name.toLowerCase().includes(state.searchQuery) || 
+            l.creator.toLowerCase().includes(state.searchQuery) ||
+            l.verifier.toLowerCase().includes(state.searchQuery)
+          );
+        }
+
+        if (state.creatorFilter !== "ALL") {
+          result = result.filter(l => l.creator === state.creatorFilter);
+        }
+
+        if (state.difficultyFilter !== "ALL") {
+          result = result.filter(l => (l.difficulty || "Extreme Demon") === state.difficultyFilter);
+        }
+
+        if (state.sortBy === "placement-asc") {
+          result.sort((a, b) => a.id - b.id);
+        } else if (state.sortBy === "placement-desc") {
+          result.sort((a, b) => b.id - a.id);
+        } else if (state.sortBy === "alphabetic") {
+          result.sort((a, b) => a.name.localeCompare(b.name));
+        } else if (state.sortBy === "points-desc") {
+          result.sort((a, b) => parseFloat(b.points.victor) - parseFloat(a.points.victor));
+        }
+
+        state.mutatedLevels = result;
+        UI.renderLevelsView();
+      }
+    };
+
+    const ThemeEngine = {
+      applyTheme(themeKey) {
+        if (!THEME_REGISTRY[themeKey]) return;
+        state.activeTheme = themeKey;
+        const config = THEME_REGISTRY[themeKey];
+
+        document.documentElement.style.setProperty('--theme-glow-color', config.glow);
+        document.documentElement.style.setProperty('--theme-gradient', config.gradient);
+        document.body.style.backgroundColor = config.background;
+
+        UI.syncNavigationTabStyles();
+
+        if (state.selectedLevelId) {
+          UI.populateInspectorPanel(state.selectedLevelId);
+        } else if (state.selectedPlayerName) {
+          UI.populatePlayerInspectorPanel(state.selectedPlayerName);
+        }
+
+        UI.renderLevelsView();
+        UI.renderLeaderboardView();
+      }
+    };
+
+    const UI = {
+      switchMainTab(target) {
+        state.activeTab = target;
+        
+        const tabBtnLevels = document.getElementById('tab-btn-levels');
+        const tabBtnLeaderboard = document.getElementById('tab-btn-leaderboard');
+        const panelLevelsControls = document.getElementById('panel-levels-controls');
+        const panelLeaderboardControls = document.getElementById('panel-leaderboard-controls');
+        const viewportLevelsList = document.getElementById('viewport-levels-list');
+        const viewportLeaderboardList = document.getElementById('viewport-leaderboard-list');
+
+        if (target === "levels") {
+          panelLevelsControls.classList.remove('hidden');
+          viewportLevelsList.classList.remove('hidden');
+          panelLeaderboardControls.classList.add('hidden');
+          viewportLeaderboardList.classList.add('hidden');
+        } else {
+          panelLeaderboardControls.classList.remove('hidden');
+          viewportLeaderboardList.classList.remove('hidden');
+          panelLevelsControls.classList.add('hidden');
+          viewportLevelsList.classList.add('hidden');
+        }
+
+        this.syncNavigationTabStyles();
+        this.clearAllSelections();
+      },
+
+      syncNavigationTabStyles() {
+        const btnLevels = document.getElementById('tab-btn-levels');
+        const btnLeaderboard = document.getElementById('tab-btn-leaderboard');
+        const activeConfig = THEME_REGISTRY[state.activeTheme];
+
+        if (state.activeTab === "levels") {
+          btnLevels.style.background = activeConfig.gradient;
+          btnLevels.classList.add('text-white');
+          btnLeaderboard.style.background = "none";
+          btnLeaderboard.classList.remove('text-white');
+          btnLeaderboard.classList.add('text-gray-400');
+        } else {
+          btnLeaderboard.style.background = activeConfig.gradient;
+          btnLeaderboard.classList.add('text-white');
+          btnLevels.style.background = "none";
+          btnLevels.classList.remove('text-white');
+          btnLevels.classList.add('text-gray-400');
+        }
+      },
+
+      renderLevelsView() {
+        const container = document.getElementById('viewport-levels-list');
+        if (!container) return;
+
+        if (state.mutatedLevels.length === 0) {
+          container.innerHTML = `
+            <div class="text-center py-8 text-gray-600 text-xs border border-dashed border-[#16161a] rounded-xl">
+              No levels found
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = state.mutatedLevels.map(level => {
+          const isSelected = level.id === state.selectedLevelId;
+          const activeBorder = isSelected ? 'border-white bg-[#101014]' : 'border-[#121215] bg-[#0a0a0c]';
+          const diffLabel = level.difficulty || "Extreme Demon";
+          const diffClass = DIFFICULTY_COLORS[diffLabel] || "bg-red-500/10 text-red-400 border-red-500/20";
+          
+          return `
+            <div onclick="UI.handleLevelCardClick(${level.id})" 
+                 class="p-4 rounded-xl border ${activeBorder} hover:border-gray-500/40 transition-all duration-150 flex items-center justify-between cursor-pointer select-none group">
+              <div class="flex items-center space-x-3.5">
+                <div class="w-11 h-11 rounded-lg bg-gradient-to-br ${level.badgeBg} flex items-center justify-center font-bold text-white text-xs tracking-wider shadow-inner shrink-0">
+                  #${level.id}
+                </div>
+                <div>
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <h4 class="font-bold text-sm text-white group-hover:text-gray-100 transition-colors">${level.name}</h4>
+                    <span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded border ${diffClass}">
+                      ${diffLabel}
+                    </span>
+                  </div>
+                  <p class="text-xs text-gray-500 font-medium mt-0.5">by <span class="text-gray-400 font-bold">${level.creator}</span></p>
+                </div>
+              </div>
+              <span class="text-xs font-bold tracking-wide text-gray-400 group-hover:text-white transition-colors shrink-0">${level.verifier}</span>
+            </div>
+          `;
+        }).join('');
+      },
+
+      renderLeaderboardView() {
+        const container = document.getElementById('viewport-leaderboard-list');
+        if (!container) return;
+
+        container.innerHTML = DB_LEADERBOARD.map((player) => {
+          const isSelected = player.name === state.selectedPlayerName;
+          const activeBorder = isSelected ? 'border-white bg-[#101014]' : 'border-[#121215] bg-[#0a0a0c]';
+
+          return `
+            <div onclick="UI.handlePlayerCardClick('${player.name}')" 
+                 class="border ${activeBorder} px-5 py-4 rounded-xl flex items-center justify-between hover:border-gray-800 transition-colors cursor-pointer select-none">
+              <div class="flex items-center space-x-3">
+                <span class="font-bold text-sm text-white">${player.name}</span>
+              </div>
+              <span class="text-sm font-bold clean-text-gradient">
+                ${player.points} <span class="text-xs font-normal text-gray-500 ml-0.5">bpts</span>
+              </span>
+            </div>
+          `;
+        }).join('');
+      },
+
+      handleLevelCardClick(id) {
+        state.selectedPlayerName = null;
+        state.selectedLevelId = id;
+        this.renderLevelsView();
+        this.renderLeaderboardView();
+        this.populateInspectorPanel(id);
+      },
+
+      handlePlayerCardClick(name) {
+        state.selectedLevelId = null;
+        state.selectedPlayerName = name;
+        this.renderLevelsView();
+        this.renderLeaderboardView();
+        this.populatePlayerInspectorPanel(name);
+      },
+
+      populateInspectorPanel(id) {
+        const level = DB_LEVELS.find(l => l.id === id);
+        if (!level) return;
+
+        const fallbackState = document.getElementById('inspector-fallback-state');
+        const populatedState = document.getElementById('inspector-populated-state');
+
+        fallbackState.classList.add('hidden');
+        populatedState.classList.remove('hidden');
+
+        const diffLabel = level.difficulty || "Extreme Demon";
+        const diffClass = DIFFICULTY_COLORS[diffLabel] || "bg-red-500/10 text-red-400 border-red-500/20";
+
+        const victorsListContent = level.victors && level.victors.length > 0
+          ? level.victors.map(v => `
+              <div class="flex items-center text-sm font-bold pl-1 text-gray-300 cursor-pointer hover:text-white" onclick="UI.handlePlayerCardClick('${v.name}')">
+                • ${v.name} — ${v.percent}
+              </div>
+            `).join('')
+          : `<div class="text-xs text-gray-500 italic py-1 pl-1">None</div>`;
+
+        populatedState.innerHTML = `
+          <div class="flex flex-col gap-5">
+            <div>
+              <div class="flex items-center gap-3 flex-wrap">
+                <span class="text-xl font-bold clean-text-gradient">#${level.id} — ${level.name}</span>
+                <span class="text-[10px] font-extrabold px-2 py-0.5 rounded border ${diffClass}">
+                  ${diffLabel}
+                </span>
+              </div>
+              <p class="text-xs text-gray-500 mt-1">
+                Creator: <span class="text-gray-300 font-bold cursor-pointer" onclick="UI.handlePlayerCardClick('${level.creator}')">${level.creator}</span> • Verifier: <span class="text-gray-300 font-bold cursor-pointer" onclick="UI.handlePlayerCardClick('${level.verifier}')">${level.verifier}</span>
+              </p>
+            </div>
+
+            <div>
+              <p class="text-xs font-bold uppercase tracking-wide text-gray-400">
+                Level ID: <span class="text-white font-medium ml-1 font-mono">${level.levelId}</span>
+              </p>
+            </div>
+
+            <div>
+              <p class="text-xs font-bold text-gray-400">
+                Points: <span class="text-gray-300 font-medium">Victor ${level.points?.victor || "0.00"} ; Verifier ${level.points?.verifier || "0.00"}</span>
+              </p>
+            </div>
+
+            <div>
+              <p class="text-xs font-bold uppercase tracking-wide mb-2 text-gray-400">Victors:</p>
+              <div class="flex flex-col gap-1.5">
+                ${victorsListContent}
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-6">
+            <button onclick="UI.copyToClipboard('${level.levelId}')" 
+                    class="bg-[#121215] hover:bg-[#181822] text-xs font-bold text-white px-5 py-3 rounded-xl transition-all duration-150 border border-[#1c1c24] flex items-center space-x-2 active:scale-95 shadow-md">
+              <span>Copy Level ID</span>
+            </button>
+          </div>
+        `;
+      },
+
+      populatePlayerInspectorPanel(name) {
+        const player = DB_LEADERBOARD.find(p => p.name === name);
+        if (!player) return;
+
+        const fallbackState = document.getElementById('inspector-fallback-state');
+        const populatedState = document.getElementById('inspector-populated-state');
+
+        fallbackState.classList.add('hidden');
+        populatedState.classList.remove('hidden');
+
+        const uncompletedVerified = player.verified ? player.verified.filter(v => !player.completed.includes(v)) : [];
+
+        const verifiedList = uncompletedVerified.length > 0
+          ? uncompletedVerified.map(v => `<div class="text-sm font-bold pl-1 text-gray-300">• ${v}</div>`).join('')
+          : `<div class="text-xs text-gray-500 italic py-1 pl-1">None</div>`;
+
+        const completedList = player.completed && player.completed.length > 0
+          ? player.completed.map(c => `<div class="text-sm font-bold pl-1 text-gray-300">• ${c}</div>`).join('')
+          : `<div class="text-xs text-gray-500 italic py-1 pl-1">None</div>`;
+
+        populatedState.innerHTML = `
+          <div class="flex flex-col gap-5">
+            <div>
+              <div class="flex items-center space-x-2">
+                <span class="text-xl font-bold clean-text-gradient">${player.name}</span>
+              </div>
+              <p class="text-xs text-gray-500 mt-1">
+                Leaderboard Profile • Total Points: <span class="clean-text-gradient font-bold">${player.points} bpts</span>
+              </p>
+            </div>
+
+            <div>
+              <p class="text-xs font-bold uppercase tracking-wide mb-2 text-gray-400">Verified:</p>
+              <div class="flex flex-col gap-1.5">
+                ${verifiedList}
+              </div>
+            </div>
+
+            <div>
+              <p class="text-xs font-bold uppercase tracking-wide mb-2 text-gray-400">Completed:</p>
+              <div class="flex flex-col gap-1.5">
+                ${completedList}
+              </div>
+            </div>
+          </div>
+          
+          <div class="pt-6"></div>
+        `;
+      },
+
+      clearAllSelections() {
+        state.selectedLevelId = null;
+        state.selectedPlayerName = null;
+        this.renderLevelsView();
+        this.renderLeaderboardView();
+        
+        document.getElementById('inspector-fallback-state').classList.remove('hidden');
+        document.getElementById('inspector-populated-state').classList.add('hidden');
+      },
+
+      copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+          this.showToast("Copied ID to clipboard", "success");
+        }).catch(() => {
+          this.showToast("Clipboard copy failed", "danger");
+        });
+      },
+
+      showToast(msg, type = "success") {
+        const container = document.getElementById('toast-container');
+        if (!container) return;
+
+        const toast = document.createElement('div');
+        let textBg = "bg-[#0c0c0e] border-[#222] text-gray-200";
+        
+        if (type === "success") {
+          textBg = "bg-[#0a0a0c] border-[#22c55e]/30 text-gray-200";
+        } else if (type === "danger") {
+          textBg = "bg-[#0a0a0c] border-red-500/30 text-gray-200";
+        } else if (type === "info") {
+          textBg = "bg-[#0a0a0c] border-blue-500/30 text-gray-200";
+        }
+
+        toast.className = `pointer-events-auto flex items-center space-x-3 px-4 py-3 rounded-xl border ${textBg} shadow-2xl transition-all duration-300 transform translate-y-4 opacity-0 text-xs font-medium max-w-sm`;
+        toast.innerHTML = `<span>${msg}</span>`;
+        
+        container.appendChild(toast);
+
+        setTimeout(() => {
+          toast.classList.remove('translate-y-4', 'opacity-0');
+        }, 10);
+
+        setTimeout(() => {
+          toast.classList.add('opacity-0', 'translate-y-2');
+          setTimeout(() => {
+            toast.remove();
+          }, 300);
+        }, 3000);
+      }
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
+      DataEngine.loadData();
+      ThemeEngine.applyTheme("theme7");
+    });
+  </script>
+</body>
+</html>
